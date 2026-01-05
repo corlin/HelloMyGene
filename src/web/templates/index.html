@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelloMyGene - 个人基因图谱分析</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            padding: 3rem 0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        .upload-section {
+            background: var(--bg-card);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .upload-zone {
+            border: 2px dashed var(--primary);
+            border-radius: 0.75rem;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-zone:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        .upload-zone.dragover {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary-dark);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-text {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .upload-hint {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .status {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: none;
+        }
+        
+        .status.show {
+            display: block;
+        }
+        
+        .status.loading {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary);
+        }
+        
+        .status.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+        
+        .disclaimer {
+            margin-top: 3rem;
+            padding: 1rem;
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 3px solid var(--warning);
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧬 HelloMyGene</h1>
+            <p class="subtitle">博士后级个人基因图谱分析系统</p>
+        </header>
+        
+        <section class="upload-section">
+            <div class="upload-zone" id="dropZone">
+                <div class="upload-icon">📁</div>
+                <p class="upload-text">拖放基因数据文件到此处</p>
+                <p class="upload-hint">或点击选择文件 (支持 .txt 格式)</p>
+                <input type="file" id="fileInput" accept=".txt">
+            </div>
+            
+            <div class="status" id="status"></div>
+        </section>
+        
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🏥</div>
+                <div class="feature-title">ACMG 临床筛查</div>
+                <div class="feature-desc">73个医学可干预基因变异检测</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💊</div>
+                <div class="feature-title">药物基因组学</div>
+                <div class="feature-desc">个性化用药指导 (CPIC 标准)</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <div class="feature-title">多基因风险评分</div>
+                <div class="feature-desc">复杂疾病遗传风险评估</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔬</div>
+                <div class="feature-title">性状分析</div>
+                <div class="feature-desc">营养代谢与生活方式建议</div>
+            </div>
+        </section>
+        
+        <div class="disclaimer">
+            ⚠️ <strong>免责声明</strong>：本系统仅供科研和教育目的，分析结果不构成医疗诊断或治疗建议。如有健康问题，请咨询专业医疗人员。
+        </div>
+    </div>
+    
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('status');
+        
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) uploadFile(file);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) uploadFile(file);
+        });
+        
+        async function uploadFile(file) {
+            showStatus('loading', `正在分析 ${file.name}...`);
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || '上传失败');
+                }
+                
+                const result = await response.json();
+                showStatus('success', `✅ ${result.message}`);
+                
+                setTimeout(() => {
+                    window.location.href = result.redirect_url;
+                }, 1500);
+                
+            } catch (error) {
+                showStatus('error', `❌ ${error.message}`);
+            }
+        }
+        
+        function showStatus(type, message) {
+            status.className = `status show ${type}`;
+            status.textContent = message;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+
+from src.database.seeds import ALL_SEED_DATA, ACMG_SEED_DATA, PRS_SEED_DATA, PGX_SEED_DATA, TRAIT_SEED_DATA, ANCESTRY_SEED_DATA, PSYCHOLOGY_SEED_DATA, SKIN_SEED_DATA, SPORTS_SEED_DATA
+
+print(f"ACMG: {len(ACMG_SEED_DATA)}")
+print(f"PGX: {len(PGX_SEED_DATA)}")
+print(f"PRS: {len(PRS_SEED_DATA)}")
+print(f"TRAIT: {len(TRAIT_SEED_DATA)}")
+print(f"ANCESTRY: {len(ANCESTRY_SEED_DATA)}")
+print(f"PSYCHOLOGY: {len(PSYCHOLOGY_SEED_DATA)}")
+print(f"SKIN: {len(SKIN_SEED_DATA)}")
+print(f"SPORTS: {len(SPORTS_SEED_DATA)}")
+print(f"TOTAL: {len(ALL_SEED_DATA)}")

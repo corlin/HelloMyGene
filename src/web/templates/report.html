@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基因分析报告 - {{ report.sample_id }}</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --accent: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-section: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 2rem 0;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .meta {
+            margin-top: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .action-bar {
+            margin-top: 1rem;
+        }
+
+        .btn-download {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary), #60a5fa);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        /* 统计卡片 */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        /* 需注意项目 - 参照 ref.pdf */
+        .alerts-section {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.1));
+            border: 1px solid var(--accent);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .alerts-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-icon {
+            font-size: 1.25rem;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .alert-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* 模块统计 */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .module-card {
+            background: var(--bg-card);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            border-left: 3px solid var(--primary);
+        }
+
+        .module-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .module-name {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* 分析模块 */
+        section {
+            background: var(--bg-card);
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: var(--bg-section);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-icon {
+            font-size: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .section-count {
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .section-content {
+            padding: 1.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--success);
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 0.5rem;
+        }
+
+        /* 发现卡片 */
+        .finding-card {
+            background: var(--bg-section);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .finding-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .finding-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .gene-name {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .rsid {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .badge-warning {
+            background: rgba(251, 191, 36, 0.2);
+            color: var(--warning);
+        }
+
+        .badge-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--info);
+        }
+
+        .finding-body {
+            font-size: 0.9rem;
+        }
+
+        .finding-phenotype {
+            margin-bottom: 0.5rem;
+        }
+
+        .finding-notes {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .drug-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .drug-tag {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        /* 风险条形图 */
+        .risk-bar-wrap {
+            margin: 0.5rem 0;
+        }
+
+        .risk-bar {
+            height: 10px;
+            background: var(--bg-dark);
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .risk-fill {
+            height: 100%;
+            transition: width 0.5s;
+            border-radius: 5px;
+        }
+
+        .risk-fill.high {
+            background: linear-gradient(90deg, var(--warning), var(--danger));
+        }
+
+        .risk-fill.moderate {
+            background: linear-gradient(90deg, var(--success), var(--warning));
+        }
+
+        .risk-fill.low {
+            background: var(--success);
+        }
+
+        .risk-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* 页脚 */
+        .disclaimer {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 3px solid var(--warning);
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 2rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .back-link,
+            .btn-download {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .summary-grid,
+            .modules-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🧬 个人基因图谱分析报告</h1>
+            <div class="meta">
+                <p>样本编号: {{ report.sample_id }} | 报告ID: {{ report.report_id }}</p>
+                <p>生成时间: {{ report.generated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            </div>
+            <div class="action-bar">
+                <a href="/report/{{ report.report_id }}/pdf" class="btn-download">📄 下载 PDF 报告</a>
+            </div>
+        </header>
+
+        <!-- 统计概览 -->
+        <div class="summary-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ "{:,}".format(report.total_variants) }}</div>
+                <div class="stat-label">检测位点</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ "{:,}".format(report.valid_variants) }}</div>
+                <div class="stat-label">有效位点</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ report.missing_rate }}%</div>
+                <div class="stat-label">缺失率</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ (report.acmg_findings|length) + (report.pgx_results|length) +
+                    (report.prs_results|length) + (report.trait_results|length) }}</div>
+                <div class="stat-label">重要发现</div>
+            </div>
+        </div>
+
+        <!-- 需注意项目 -->
+        <!-- 需注意项目 -->
+        {% if report.alert_items %}
+        <div class="alerts-section">
+            <div class="alerts-header">
+                ⚠️ 需注意项目与建议 ({{ report.alert_items|length }}项)
+            </div>
+            {% for item in report.alert_items %}
+            <div class="alert-item">
+                <span class="alert-icon">{{ '🏥' if item.priority == 1 else ('💊' if item.priority == 2 else '🔬')
+                    }}</span>
+                <div class="alert-content">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span class="alert-title">{{ item.item_name }}</span>
+                        <span style="color:var(--danger); font-weight:bold; font-size:0.9rem;">{{ item.result }}</span>
+                    </div>
+                    <div class="alert-desc" style="color:var(--text-primary); margin-bottom:2px;">
+                        <span style="color:var(--success);">🛡️ 建议:</span> {{ item.prevention }}
+                    </div>
+                    {% if item.suggested_tests %}
+                    <div class="alert-desc" style="color:var(--info);">
+                        <span>🔬 检查:</span> {{ item.suggested_tests }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- 模块统计 -->
+        <div class="modules-grid">
+            <div class="module-card">
+                <div class="module-count">{{ report.acmg_findings|length }}</div>
+                <div class="module-name">🏥 临床变异</div>
+            </div>
+            <div class="module-card">
+                <div class="module-count">{{ report.pgx_results|length }}</div>
+                <div class="module-name">💊 用药指导</div>
+            </div>
+            <div class="module-card">
+                <div class="module-count">{{ report.prs_results|length }}</div>
+                <div class="module-name">📊 疾病风险</div>
+            </div>
+            <div class="module-card">
+                <div class="module-count">{{ report.trait_results|length }}</div>
+                <div class="module-name">🔬 遗传特质</div>
+            </div>
+        </div>
+
+        <!-- ACMG 临床发现 -->
+        <section>
+            <div class="section-header">
+                <div class="section-title-wrap">
+                    <span class="section-icon">🏥</span>
+                    <span class="section-title">ACMG 临床可报告变异</span>
+                </div>
+                <span class="section-count">{{ report.acmg_findings|length }} 项</span>
+            </div>
+            <div class="section-content">
+                {% if report.acmg_findings %}
+                {% for finding in report.acmg_findings %}
+                <div class="finding-card">
+                    <div class="finding-header">
+                        <span class="gene-name">{{ finding.gene }}</span>
+                        <span class="rsid">{{ finding.rsid }}</span>
+                        <span class="badge badge-danger">{{ finding.clinical_significance }}</span>
+                    </div>
+                    <div class="finding-body">
+                        <p class="finding-phenotype">{{ finding.phenotype }}</p>
+                        {% if finding.recommendation %}
+                        <p class="finding-notes">💡 {{ finding.recommendation }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">✅ 未检测到 ACMG 推荐筛查的致病性变异</div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- 药物基因组学 -->
+        <section>
+            <div class="section-header">
+                <div class="section-title-wrap">
+                    <span class="section-icon">💊</span>
+                    <span class="section-title">药物基因组学 (PGx)</span>
+                </div>
+                <span class="section-count">{{ report.pgx_results|length }} 项</span>
+            </div>
+            <div class="section-content">
+                {% if report.pgx_results %}
+                {% for pgx in report.pgx_results %}
+                <div class="finding-card">
+                    <div class="finding-header">
+                        <span class="gene-name">{{ pgx.gene }}</span>
+                        <span class="rsid">{{ pgx.rsid }}: {{ pgx.genotype }}</span>
+                        <span class="badge badge-warning">{{ pgx.phenotype.value }}</span>
+                    </div>
+                    <div class="finding-body">
+                        <p class="finding-notes">{{ pgx.recommendation }}</p>
+                        <div class="drug-list">
+                            {% for drug in pgx.affected_drugs %}
+                            <span class="drug-tag">{{ drug }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">✅ 未检测到影响常见药物代谢的变异</div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- 多基因风险评分 -->
+        <section>
+            <div class="section-header">
+                <div class="section-title-wrap">
+                    <span class="section-icon">📊</span>
+                    <span class="section-title">疾病易感风险 (PRS)</span>
+                </div>
+                <span class="section-count">{{ report.prs_results|length }} 项</span>
+            </div>
+            <div class="section-content">
+                {% if report.prs_results %}
+
+                <h4 style="margin: 1rem 0 0.5rem; color: #333; font-weight: 600;">🏥 疾病易感风险</h4>
+                {% for prs in report.prs_results|selectattr('group', 'in', ['Disease', 'DISEASE']) %}
+                <div class="finding-card">
+                    <div class="finding-header">
+                        <span class="gene-name">{{ prs.disease }}</span>
+                        <span
+                            class="badge badge-{{ 'danger' if prs.risk_level.value == '高风险' else ('warning' if prs.risk_level.value == '中等风险' else 'success') }}">
+                            {{ prs.risk_level.value }}
+                        </span>
+                    </div>
+                    <div class="finding-body">
+                        <div class="risk-bar-wrap">
+                            <div class="risk-bar">
+                                <div class="risk-fill {{ 'high' if prs.percentile > 80 else ('moderate' if prs.percentile > 60 else 'low') }}"
+                                    style="width: {{ prs.percentile }}%"></div>
+                            </div>
+                            <div class="risk-label">
+                                <span>低风险</span>
+                                <span>第 {{ prs.percentile|int }} 百分位</span>
+                                <span>高风险</span>
+                            </div>
+                        </div>
+                        <p class="finding-notes" style="margin-top:0.5rem;">{{ prs.interpretation }}</p>
+                        {% if prs.prevention %}
+                        <p class="finding-notes" style="color:var(--success); margin-top:0.3rem;">🛡️
+                            <strong>预防建议:</strong> {{ prs.prevention }}</p>
+                        {% endif %}
+                        {% if prs.suggested_tests %}
+                        <p class="finding-notes" style="color:var(--info); margin-top:0.2rem;">🔬 <strong>建议检查:</strong>
+                            {{ prs.suggested_tests }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <h4 style="margin: 2rem 0 0.5rem; color: #333; font-weight: 600;">🎗️ 肿瘤易感风险</h4>
+                {% for prs in report.prs_results|selectattr('group', 'in', ['Tumor', 'TUMOR']) %}
+                <div class="finding-card">
+                    <div class="finding-header">
+                        <span class="gene-name">{{ prs.disease }}</span>
+                        <span
+                            class="badge badge-{{ 'danger' if prs.risk_level.value == '高风险' else ('warning' if prs.risk_level.value == '中等风险' else 'success') }}">
+                            {{ prs.risk_level.value }}
+                        </span>
+                    </div>
+                    <div class="finding-body">
+                        <div class="risk-bar-wrap">
+                            <div class="risk-bar">
+                                <div class="risk-fill {{ 'high' if prs.percentile > 80 else ('moderate' if prs.percentile > 60 else 'low') }}"
+                                    style="width: {{ prs.percentile }}%"></div>
+                            </div>
+                            <div class="risk-label">
+                                <span>低风险</span>
+                                <span>第 {{ prs.percentile|int }} 百分位</span>
+                                <span>高风险</span>
+                            </div>
+                        </div>
+                        <p class="finding-notes" style="margin-top:0.5rem;">{{ prs.interpretation }}</p>
+                        {% if prs.prevention %}
+                        <p class="finding-notes" style="color:var(--success); margin-top:0.3rem;">🛡️
+                            <strong>预防建议:</strong> {{ prs.prevention }}</p>
+                        {% endif %}
+                        {% if prs.suggested_tests %}
+                        <p class="finding-notes" style="color:var(--info); margin-top:0.2rem;">🔬 <strong>建议检查:</strong>
+                            {{ prs.suggested_tests }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% else %}
+                <div class="empty-state">暂无多基因风险评估数据</div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- 遗传特质 -->
+        <section>
+            <div class="section-header">
+                <div class="section-title-wrap">
+                    <span class="section-icon">🔬</span>
+                    <span class="section-title">遗传特质与营养代谢</span>
+                </div>
+                <span class="section-count">{{ report.trait_results|length }} 项</span>
+            </div>
+            <div class="section-content">
+                {% if report.trait_results %}
+
+                {% for category, traits in report.trait_results|groupby('category.value') %}
+                <div
+                    style="grid-column: 1 / -1; margin-top: 1rem; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 600; border-bottom: 1px solid var(--bg-section); padding-bottom: 0.5rem;">
+                    📌 {{ category }}
+                </div>
+
+                {% for trait in traits %}
+                <div class="finding-card">
+                    <div class="finding-header">
+                        <span class="gene-name">{{ trait.trait_name }}</span>
+                        <span class="rsid">{{ trait.rsid }}: {{ trait.genotype }}</span>
+                    </div>
+                    <div class="finding-body">
+                        <p class="finding-phenotype">{{ trait.result }}</p>
+                        <p class="finding-notes">{{ trait.description }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endfor %}
+
+                {% else %}
+                <div class="empty-state">暂无性状分析数据</div>
+                {% endif %}
+            </div>
+        </section>
+
+        <div class="disclaimer">
+            ⚠️ <strong>免责声明</strong>: {{ report.disclaimer }}
+        </div>
+
+        <a href="/" class="back-link">← 返回首页</a>
+    </div>
+</body>
+
+</html>

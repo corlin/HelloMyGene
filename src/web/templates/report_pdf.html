@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>基因分析报告 - {{ report.sample_id }}</title>
+    <style>
+        @font-face {
+            font-family: 'NotoSansSC';
+            src: url('file:///Users/corlin/2026/HelloMyGene/src/static/fonts/NotoSansSC-Regular.ttf');
+        }
+
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'STSong-Light';
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #1a1a1a;
+        }
+
+        header {
+            text-align: center;
+            padding-bottom: 0.8cm;
+            border-bottom: 2px solid #3b82f6;
+            margin-bottom: 0.8cm;
+        }
+
+        h1 {
+            font-size: 18pt;
+            color: #3b82f6;
+            margin-bottom: 0.3cm;
+        }
+
+        .meta {
+            color: #666;
+            font-size: 9pt;
+        }
+
+        .summary-table {
+            width: 100%;
+            margin: 0.5cm 0;
+            border-collapse: collapse;
+        }
+
+        .summary-table td {
+            padding: 0.3cm;
+            text-align: center;
+            border: 1px solid #ddd;
+            width: 25%;
+        }
+
+        .summary-table .value {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .summary-table .label {
+            font-size: 8pt;
+            color: #666;
+        }
+
+        /* 需注意项目 */
+        .alerts-box {
+            background: #fff7ed;
+            border: 1px solid #f59e0b;
+            border-radius: 4px;
+            padding: 0.4cm;
+            margin: 0.5cm 0;
+        }
+
+        .alerts-title {
+            color: #d97706;
+            font-weight: bold;
+            font-size: 11pt;
+            margin-bottom: 0.3cm;
+        }
+
+        .alert-item {
+            padding: 0.2cm 0;
+            border-bottom: 1px dashed #fcd34d;
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        /* 模块 */
+        section {
+            margin: 0.6cm 0;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            font-size: 12pt;
+            color: #3b82f6;
+            border-bottom: 1px solid #3b82f6;
+            padding-bottom: 0.15cm;
+            margin-bottom: 0.4cm;
+        }
+
+        .section-count {
+            float: right;
+            background: #3b82f6;
+            color: white;
+            padding: 0 0.3cm;
+            border-radius: 10px;
+            font-size: 9pt;
+        }
+
+        .finding {
+            background: #f8fafc;
+            padding: 0.3cm;
+            margin-bottom: 0.25cm;
+            border-radius: 3px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .finding-header {
+            margin-bottom: 0.15cm;
+        }
+
+        .gene-name {
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .rsid {
+            font-family: monospace;
+            font-size: 8pt;
+            color: #888;
+            margin-left: 0.3cm;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 7pt;
+            font-weight: bold;
+            float: right;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-success {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .notes {
+            font-size: 9pt;
+            color: #666;
+        }
+
+        .drug-tag {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-size: 8pt;
+            margin-right: 3px;
+        }
+
+        /* 风险条 */
+        .risk-bar {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            margin: 0.15cm 0;
+            position: relative;
+        }
+
+        .risk-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .risk-fill.high {
+            background: linear-gradient(90deg, #fbbf24, #ef4444);
+        }
+
+        .risk-fill.moderate {
+            background: linear-gradient(90deg, #22c55e, #fbbf24);
+        }
+
+        .risk-fill.low {
+            background: #22c55e;
+        }
+
+        .risk-label {
+            font-size: 7pt;
+            color: #888;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 0.4cm;
+            color: #16a34a;
+            background: #dcfce7;
+            border-radius: 3px;
+        }
+
+        .disclaimer {
+            margin-top: 0.8cm;
+            padding: 0.3cm;
+            background: #fffbeb;
+            border-left: 3px solid #f59e0b;
+            font-size: 8pt;
+            color: #92400e;
+        }
+
+        footer {
+            margin-top: 0.8cm;
+            text-align: center;
+            font-size: 8pt;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🧬 个人基因图谱分析报告</h1>
+        <div class="meta">
+            <p>样本编号: {{ report.sample_id }} | 报告ID: {{ report.report_id }}</p>
+            <p>生成时间: {{ report.generated_at.strftime('%Y年%m月%d日 %H:%M') }}</p>
+        </div>
+    </header>
+
+    <table class="summary-table">
+        <tr>
+            <td>
+                <div class="value">{{ "{:,}".format(report.total_variants) }}</div>
+                <div class="label">检测位点</div>
+            </td>
+            <td>
+                <div class="value">{{ "{:,}".format(report.valid_variants) }}</div>
+                <div class="label">有效位点</div>
+            </td>
+            <td>
+                <div class="value">{{ report.missing_rate }}%</div>
+                <div class="label">缺失率</div>
+            </td>
+            <td>
+                <div class="value">{{ (report.acmg_findings|length) + (report.pgx_results|length) +
+                    (report.prs_results|length) + (report.trait_results|length) }}</div>
+                <div class="label">重要发现</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- 需注意项目 -->
+    {% if report.alert_items %}
+    <div class="alerts-box">
+        <div class="alerts-title">⚠️ 需注意项目与建议 ({{ report.alert_items|length }}项)</div>
+        <table style="width:100%; border-collapse: collapse; font-size: 9pt;">
+            <thead>
+                <tr style="border-bottom: 2px solid #f59e0b; color: #d97706;">
+                    <th style="padding: 5px; text-align: left; width: 20%;">项目</th>
+                    <th style="padding: 5px; text-align: left; width: 15%;">结果</th>
+                    <th style="padding: 5px; text-align: left; width: 40%;">建议/预防</th>
+                    <th style="padding: 5px; text-align: left; width: 25%;">进一步检查</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in report.alert_items %}
+                <tr style="border-bottom: 1px dashed #fcd34d;">
+                    <td style="padding: 8px 5px; font-weight: bold; color: #333;">{{ item.item_name }}</td>
+                    <td style="padding: 8px 5px; color: #dc2626; font-weight: bold;">{{ item.result }}</td>
+                    <td style="padding: 8px 5px; color: #555;">{{ item.prevention }}</td>
+                    <td style="padding: 8px 5px; color: #555;">{{ item.suggested_tests }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- ACMG -->
+    <section>
+        <h2 class="section-title">🏥 ACMG 临床可报告变异 <span class="section-count">{{ report.acmg_findings|length }}</span>
+        </h2>
+        {% if report.acmg_findings %}
+        {% for finding in report.acmg_findings %}
+        <div class="finding">
+            <div class="finding-header">
+                <span class="gene-name">{{ finding.gene }}</span>
+                <span class="rsid">{{ finding.rsid }}</span>
+                <span class="badge badge-danger">{{ finding.clinical_significance }}</span>
+            </div>
+            <p>{{ finding.phenotype }}</p>
+            {% if finding.recommendation %}<p class="notes">💡 {{ finding.recommendation }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">✅ 未检测到 ACMG 推荐筛查的致病性变异</div>
+        {% endif %}
+    </section>
+
+    <!-- PGx -->
+    <section>
+        <h2 class="section-title">💊 药物基因组学 <span class="section-count">{{ report.pgx_results|length }}</span></h2>
+        {% if report.pgx_results %}
+        {% for pgx in report.pgx_results %}
+        <div class="finding">
+            <div class="finding-header">
+                <span class="gene-name">{{ pgx.gene }}</span>
+                <span class="rsid">{{ pgx.rsid }}: {{ pgx.genotype }}</span>
+                <span class="badge badge-warning">{{ pgx.phenotype.value }}</span>
+            </div>
+            <p class="notes">{{ pgx.recommendation }}</p>
+            <div>{% for drug in pgx.affected_drugs %}<span class="drug-tag">{{ drug }}</span>{% endfor %}</div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">✅ 未检测到影响常见药物代谢的变异</div>
+        {% endif %}
+    </section>
+
+    <!-- 3. 疾病易感风险 -->
+    <div class="page-break"></div>
+    <section>
+        <h2 class="section-title">🏥 疾病易感风险 <span class="section-count">{{ report.prs_results|selectattr('group', 'in',
+                ['Disease', 'DISEASE'])|list|length }}</span></h2>
+
+        {% for prs in report.prs_results|selectattr('group', 'in', ['Disease', 'DISEASE']) %}
+        <div class="finding">
+            <div class="finding-header">
+                <span class="gene-name">{{ prs.disease }}</span>
+                <span
+                    class="badge badge-{{ 'danger' if prs.risk_level.value == '高风险' else ('warning' if prs.risk_level.value == '中等风险' else 'success') }}">
+                    {{ prs.risk_level.value }}
+                </span>
+            </div>
+
+            <div class="risk-bar">
+                <div class="risk-fill {{ 'high' if prs.percentile > 80 else ('moderate' if prs.percentile > 60 else 'low') }}"
+                    style="width: {{ prs.percentile }}%"></div>
+            </div>
+            <div class="risk-label"><span>低风险</span><span>第{{ prs.percentile|int }}百分位</span><span>高风险</span></div>
+            <p class="notes" style="margin-top: 5px;">{{ prs.interpretation }}</p>
+            {% if prs.prevention %}
+            <p class="notes" style="color: #059669; margin-top: 3px;">🛡️ <strong>预防建议:</strong> {{ prs.prevention }}
+            </p>
+            {% endif %}
+            {% if prs.suggested_tests %}
+            <p class="notes" style="color: #0284c7; margin-top: 2px;">🔬 <strong>建议检查:</strong> {{ prs.suggested_tests
+                }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </section>
+
+    <!-- 4. 肿瘤易感风险 -->
+    <div class="page-break"></div>
+    <section>
+        <h2 class="section-title">🎗️ 肿瘤易感风险 <span class="section-count">{{ report.prs_results|selectattr('group', 'in',
+                ['Tumor', 'TUMOR'])|list|length }}</span></h2>
+
+        {% for prs in report.prs_results|selectattr('group', 'in', ['Tumor', 'TUMOR']) %}
+        <div class="finding">
+            <div class="finding-header">
+                <span class="gene-name">{{ prs.disease }}</span>
+                <span
+                    class="badge badge-{{ 'danger' if prs.risk_level.value == '高风险' else ('warning' if prs.risk_level.value == '中等风险' else 'success') }}">
+                    {{ prs.risk_level.value }}
+                </span>
+            </div>
+
+            <div class="risk-bar">
+                <div class="risk-fill {{ 'high' if prs.percentile > 80 else ('moderate' if prs.percentile > 60 else 'low') }}"
+                    style="width: {{ prs.percentile }}%"></div>
+            </div>
+            <div class="risk-label"><span>低风险</span><span>第{{ prs.percentile|int }}百分位</span><span>高风险</span></div>
+            <p class="notes" style="margin-top: 5px;">{{ prs.interpretation }}</p>
+            {% if prs.prevention %}
+            <p class="notes" style="color: #059669; margin-top: 3px;">🛡️ <strong>预防建议:</strong> {{ prs.prevention }}
+            </p>
+            {% endif %}
+            {% if prs.suggested_tests %}
+            <p class="notes" style="color: #0284c7; margin-top: 2px;">🔬 <strong>建议检查:</strong> {{ prs.suggested_tests
+                }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </section>
+
+    <!-- Traits -->
+    <section>
+        <h2 class="section-title">🔬 遗传特质 <span class="section-count">{{ report.trait_results|length }}</span></h2>
+        {% if report.trait_results %}
+
+        {% for category, traits in report.trait_results|groupby('category.value') %}
+        <div
+            style="margin-top: 15px; margin-bottom: 10px; font-weight: bold; color: #4b5563; border-bottom: 1px dotted #9ca3af; padding-bottom: 3px;">
+            📌 {{ category }}
+        </div>
+
+        {% for trait in traits %}
+        <div class="finding">
+            <div class="finding-header">
+                <span class="gene-name">{{ trait.trait_name }}</span>
+                <span class="rsid">{{ trait.rsid }}: {{ trait.genotype }}</span>
+            </div>
+            <p>{{ trait.result }}</p>
+            <p class="notes">{{ trait.description }}</p>
+        </div>
+        {% endfor %}
+        {% endfor %}
+
+        {% else %}
+        <div class="empty-state">暂无性状分析数据</div>
+        {% endif %}
+    </section>
+
+    <div class="disclaimer">
+        ⚠️ <strong>免责声明</strong>: {{ report.disclaimer }}
+    </div>
+
+    <footer>
+        <p>HelloMyGene 个人基因图谱分析系统 v{{ report.analysis_version }}</p>
+    </footer>
+</body>
+
+</html>
