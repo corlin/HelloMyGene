@@ -12,6 +12,38 @@ HelloMyGene is a FastAPI-based personal genetic analysis system. It allows users
 - **PDF Export**: Supports exporting genetic reports to PDF format for easy saving and sharing.
 - **Localization Support**: Perfectly supports Chinese report generation.
 
+## 📚 Genetic Knowledge Base
+
+HelloMyGene includes a comprehensive database of genetic markers covering the following key areas:
+
+### 1. ACMG59 Genetic Screening
+Screening for 59 actionable hereditary conditions based on the ACMG (American College of Medical Genetics and Genomics) SF v3.2 guidelines:
+- **Hereditary Cancer Syndromes**: Hereditary Breast/Ovarian Cancer (BRCA1/2), Lynch Syndrome, Li-Fraumeni Syndrome (TP53), etc.
+- **Cardiovascular Diseases**: Long QT Syndrome, Familial Hypercholesterolemia (LDLR), Hypertrophic Cardiomyopathy, etc.
+
+### 2. Pharmacogenomics (PGx)
+Covers metabolism and response predictions for **53 common drugs**, based on CPIC and PharmGKB guidelines:
+- **Cardiovascular**: Warfarin, Clopidogrel, Statins.
+- **Neuropsychiatric**: SSRIs (Antidepressants), Opioids (Codeine, Tramadol).
+- **Oncology/Immunology**: Tacrolimus, Fluorouracil, Thiopurines.
+- **Anti-infectives**: Voriconazole, Isoniazid, etc.
+
+### 3. Polygenic Risk Scores (PRS)
+Assess genetic susceptibility to complex diseases using GWAS data:
+- **Tumor Susceptibility (17 types)**: Lung, Liver, Gastric, Colorectal, Prostate, Breast, Thyroid Cancer, etc.
+- **Chronic Disease Risks (62 types)**:
+    - **Cardiovascular**: Coronary Heart Disease, Hypertension, Atrial Fibrillation, Stroke.
+    - **Endocrine/Metabolic**: Type 2 Diabetes, Hyperlipidemia, Gout, Hypothyroidism.
+    - **Immune/Orthopedic**: Rheumatoid Arthritis, SLE, Ankylosing Spondylitis, Osteoarthritis.
+    - **Neuro/Psych**: Alzheimer's, Parkinson's, Migraine, Depression susceptibility.
+
+### 4. Traits & Wellness
+- **Nutrition & Metabolism**: Alcohol/Caffeine metabolism, Lactose Intolerance, Vitamin (A/B12/C/D/E) & Mineral (Ca/Fe/Zn) needs.
+- **Sports Genetics**: Power/Endurance potential (ACTN3), Weight loss response to exercise, Injury risk (Achilles/Ligament), Recovery speed.
+- **Skin Traits**: Anti-glycation/Anti-oxidation capacity, Freckle susceptibility, Skin elasticity, Tanning ability.
+- **Psychological Traits**: Stress tolerance (COMT), Empathy, Novelty seeking, Circadian rhythm (Chronotype).
+- **Other Traits**: Absolute pitch, Earwax type (Wet/Dry), Taste sensitivity, etc.
+
 ## 🛠️ Tech Stack
 
 - **Backend Framework**: [FastAPI](https://fastapi.tiangolo.com/) - High-performance Python Web Framework
